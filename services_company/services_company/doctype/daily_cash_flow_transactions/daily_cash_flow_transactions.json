@@ -1,0 +1,352 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2024-05-11 11:19:39.447638",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type_account",
+  "section_break_duup",
+  "account",
+  "account_type",
+  "balance",
+  "col_break1",
+  "bank_account",
+  "party_type",
+  "party",
+  "party_balance",
+  "accounting_dimensions_section",
+  "cost_center",
+  "dimension_col_break",
+  "project",
+  "currency_section",
+  "transactions_account_currency",
+  "account_currency",
+  "column_break_10",
+  "conversion_rate",
+  "exchange_rate",
+  "sec_break1",
+  "cash_in",
+  "debit_in_account_currency",
+  "debit",
+  "col_break2",
+  "cash_out",
+  "credit_in_account_currency",
+  "credit",
+  "reference",
+  "reference_type",
+  "reference_name",
+  "reference_due_date",
+  "reference_detail_no",
+  "col_break3",
+  "is_advance",
+  "user_remark",
+  "against_account"
+ ],
+ "fields": [
+  {
+   "fetch_from": ".account",
+   "fieldname": "type_account",
+   "fieldtype": "Link",
+   "label": "Type Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_break_duup",
+   "fieldtype": "Section Break"
+  },
+  {
+   "bold": 1,
+   "columns": 2,
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "in_global_search": 1,
+   "label": "Account",
+   "oldfieldname": "account",
+   "oldfieldtype": "Link",
+   "options": "Account",
+   "print_width": "250px",
+   "reqd": 1,
+   "search_index": 1,
+   "width": "250px"
+  },
+  {
+   "fieldname": "account_type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Account Type",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "label": "Account Balance",
+   "no_copy": 1,
+   "oldfieldname": "balance",
+   "oldfieldtype": "Data",
+   "options": "account_currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "options": "Bank Account"
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Party Type",
+   "options": "DocType",
+   "search_index": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Party",
+   "options": "party_type"
+  },
+  {
+   "fieldname": "party_balance",
+   "fieldtype": "Currency",
+   "label": "Party Balance",
+   "options": "account_currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "accounting_dimensions_section",
+   "fieldtype": "Section Break",
+   "label": "Accounting Dimensions"
+  },
+  {
+   "default": ":Company",
+   "description": "If Income or Expense",
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "oldfieldname": "cost_center",
+   "oldfieldtype": "Link",
+   "options": "Cost Center",
+   "print_hide": 1,
+   "print_width": "180px",
+   "width": "180px"
+  },
+  {
+   "fieldname": "dimension_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "currency_section",
+   "fieldtype": "Section Break",
+   "label": "Currency"
+  },
+  {
+   "fieldname": "transactions_account_currency",
+   "fieldtype": "Link",
+   "label": "Transactions Account Currency",
+   "options": "Currency",
+   "read_only": 1
+  },
+  {
+   "fetch_from": ".account_currency",
+   "fieldname": "account_currency",
+   "fieldtype": "Link",
+   "label": "Account Currency",
+   "no_copy": 1,
+   "options": "Currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Conversion Rate",
+   "precision": "9",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "exchange_rate",
+   "fieldtype": "Float",
+   "label": "Exchange Rate",
+   "precision": "9",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "sec_break1",
+   "fieldtype": "Section Break",
+   "label": "Amount"
+  },
+  {
+   "bold": 1,
+   "fieldname": "cash_in",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Cash In",
+   "non_negative": 1,
+   "options": "transactions_account_currency",
+   "search_index": 1
+  },
+  {
+   "bold": 1,
+   "columns": 2,
+   "fieldname": "debit_in_account_currency",
+   "fieldtype": "Currency",
+   "label": "Debit",
+   "options": "account_currency",
+   "print_hide_if_no_value": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "debit",
+   "fieldtype": "Currency",
+   "label": "Debit in Company Currency",
+   "no_copy": 1,
+   "oldfieldname": "debit",
+   "oldfieldtype": "Currency",
+   "options": "Company:company:default_currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "cash_out",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Cash Out",
+   "non_negative": 1,
+   "options": "transactions_account_currency",
+   "search_index": 1
+  },
+  {
+   "bold": 1,
+   "columns": 2,
+   "fieldname": "credit_in_account_currency",
+   "fieldtype": "Currency",
+   "label": "Credit",
+   "options": "account_currency",
+   "print_hide_if_no_value": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "credit",
+   "fieldtype": "Currency",
+   "label": "Credit in Company Currency",
+   "no_copy": 1,
+   "oldfieldname": "credit",
+   "oldfieldtype": "Currency",
+   "options": "Company:company:default_currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Section Break",
+   "label": "Reference"
+  },
+  {
+   "fieldname": "reference_type",
+   "fieldtype": "Select",
+   "label": "Reference Type",
+   "no_copy": 1,
+   "options": "\nSales Invoice\nPurchase Invoice\nJournal Entry\nSales Order\nPurchase Order\nExpense Claim\nAsset\nLoan\nPayroll Entry\nEmployee Advance\nExchange Rate Revaluation\nInvoice Discounting\nFees\nFull and Final Statement\nPayment Entry",
+   "search_index": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Reference Name",
+   "no_copy": 1,
+   "options": "reference_type",
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:doc.reference_type&&!in_list(doc.reference_type, ['Expense Claim', 'Asset', 'Employee Loan', 'Employee Advance'])",
+   "fieldname": "reference_due_date",
+   "fieldtype": "Date",
+   "label": "Reference Due Date",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "reference_detail_no",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Reference Detail No",
+   "no_copy": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "col_break3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "is_advance",
+   "fieldtype": "Select",
+   "label": "Is Advance",
+   "no_copy": 1,
+   "oldfieldname": "is_advance",
+   "oldfieldtype": "Select",
+   "options": "No\nYes",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "user_remark",
+   "fieldtype": "Small Text",
+   "label": "User Remark",
+   "no_copy": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "against_account",
+   "fieldtype": "Text",
+   "hidden": 1,
+   "label": "Against Account",
+   "no_copy": 1,
+   "oldfieldname": "against_account",
+   "oldfieldtype": "Text",
+   "print_hide": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-05-11 11:19:39.447638",
+ "modified_by": "Administrator",
+ "module": "Services Company",
+ "name": "Daily Cash Flow Transactions",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
