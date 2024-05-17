@@ -17,6 +17,7 @@
   "column_break_14",
   "company",
   "set_posting_time",
+  "is_pos",
   "is_return",
   "return_against",
   "update_billed_amount_in_sales_order",
@@ -170,9 +171,10 @@
   "debit_to",
   "party_account_currency",
   "is_opening",
-  "column_break8",
-  "unrealized_profit_loss_account",
   "against_income_account",
+  "unrealized_profit_loss_account",
+  "column_break8",
+  "credit_to",
   "sales_team_section_break",
   "sales_partner",
   "amount_eligible_for_commission",
@@ -263,7 +265,7 @@
    "depends_on": "customer",
    "fetch_from": "customer.customer_name",
    "fieldname": "customer_name",
-   "fieldtype": "Date",
+   "fieldtype": "Small Text",
    "hide_days": 1,
    "hide_seconds": 1,
    "in_global_search": 1,
@@ -533,7 +535,7 @@
    "hide_seconds": 1,
    "oldfieldname": "entries",
    "oldfieldtype": "Table",
-   "options": "Sales Invoice Item",
+   "options": "Service Invoice Item",
    "reqd": 1
   },
   {
@@ -2089,6 +2091,29 @@
   {
    "fieldname": "column_break_knhi",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.docstatus==0",
+   "fieldname": "is_pos",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Include Payment (POS)",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "credit_to",
+   "fieldtype": "Link",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Credit To",
+   "oldfieldname": "debit_to",
+   "oldfieldtype": "Link",
+   "options": "Account",
+   "print_hide": 1,
+   "reqd": 1,
+   "search_index": 1
   }
  ],
  "icon": "fa fa-file-text",
@@ -2100,7 +2125,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2024-05-14 10:52:08.133491",
+ "modified": "2024-05-15 11:48:40.052033",
  "modified_by": "Administrator",
  "module": "Services Company",
  "name": "Service Invoice",
