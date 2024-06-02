@@ -13,15 +13,14 @@
   "column_break1",
   "posting_date",
   "posting_time",
+  "set_posting_time",
   "due_date",
   "column_break_14",
   "company",
-  "set_posting_time",
-  "is_pos",
+  "is_paid",
+  "is_multiple_suppliers",
   "is_return",
   "return_against",
-  "update_billed_amount_in_sales_order",
-  "is_debit_note",
   "amended_from",
   "section_break_lyjh",
   "customer",
@@ -29,6 +28,8 @@
   "column_break_knhi",
   "supplier",
   "supplier_name",
+  "bill_no",
+  "bill_date",
   "accounting_dimensions_section",
   "cost_center",
   "dimension_col_break",
@@ -44,14 +45,19 @@
   "section_break_42",
   "items",
   "section_break_30",
-  "total_qty",
-  "total_net_weight",
   "column_break_32",
+  "total_qty",
   "base_total",
   "base_net_total",
+  "base_total_commission_rate",
   "column_break_52",
   "total",
   "net_total",
+  "tax_withholding_net_total",
+  "column_break_ylit",
+  "total_buying_rate",
+  "total_commission_rate",
+  "base_tax_withholding_net_total",
   "taxes_section",
   "tax_category",
   "taxes_and_charges",
@@ -63,8 +69,12 @@
   "section_break_40",
   "taxes",
   "section_break_43",
+  "base_taxes_and_charges_added",
+  "base_taxes_and_charges_deducted",
   "base_total_taxes_and_charges",
   "column_break_47",
+  "taxes_and_charges_added",
+  "taxes_and_charges_deducted",
   "total_taxes_and_charges",
   "totals",
   "base_grand_total",
@@ -74,8 +84,8 @@
   "column_break5",
   "grand_total",
   "rounding_adjustment",
-  "use_company_roundoff_cost_center",
   "rounded_total",
+  "use_company_roundoff_cost_center",
   "in_words",
   "total_advance",
   "outstanding_amount",
@@ -175,6 +185,7 @@
   "unrealized_profit_loss_account",
   "column_break8",
   "credit_to",
+  "against_expense_account",
   "sales_team_section_break",
   "sales_partner",
   "amount_eligible_for_commission",
@@ -371,24 +382,6 @@
    "search_index": 1
   },
   {
-   "default": "0",
-   "depends_on": "eval: doc.is_return",
-   "fieldname": "update_billed_amount_in_sales_order",
-   "fieldtype": "Check",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "label": "Update Billed Amount in Sales Order"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval: !doc.is_return",
-   "description": "Issue a debit note with 0 qty against an existing Sales Invoice",
-   "fieldname": "is_debit_note",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is Rate Adjustment Entry (Debit Note)"
-  },
-  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "hide_days": 1,
@@ -553,16 +546,6 @@
    "read_only": 1
   },
   {
-   "depends_on": "total_net_weight",
-   "fieldname": "total_net_weight",
-   "fieldtype": "Float",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "label": "Total Net Weight",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_32",
    "fieldtype": "Column Break",
    "hide_days": 1,
@@ -683,7 +666,7 @@
    "fieldtype": "Section Break",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Sales Taxes and Charges"
+   "label": "Service Taxes and Charges"
   },
   {
    "fieldname": "taxes",
@@ -693,7 +676,7 @@
    "label": "Sales Taxes and Charges",
    "oldfieldname": "other_charges",
    "oldfieldtype": "Table",
-   "options": "Sales Taxes and Charges"
+   "options": "Service Taxes and Charges"
   },
   {
    "collapsible": 1,
@@ -781,7 +764,7 @@
    "read_only": 1
   },
   {
-   "description": "In Words will be visible once you save the Sales Invoice.",
+   "description": "In Words will be visible once you save the Service Invoice.",
    "fieldname": "base_in_words",
    "fieldtype": "Small Text",
    "hide_days": 1,
@@ -2081,7 +2064,6 @@
    "fieldname": "supplier_name",
    "fieldtype": "Data",
    "label": "Supplier Name",
-   "options": "Supplier",
    "read_only": 1
   },
   {
@@ -2091,16 +2073,6 @@
   {
    "fieldname": "column_break_knhi",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.docstatus==0",
-   "fieldname": "is_pos",
-   "fieldtype": "Check",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "label": "Include Payment (POS)",
-   "print_hide": 1
   },
   {
    "fieldname": "credit_to",
@@ -2114,6 +2086,152 @@
    "print_hide": 1,
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "against_expense_account",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Against Expense Account",
+   "no_copy": 1,
+   "oldfieldname": "against_income_account",
+   "oldfieldtype": "Small Text",
+   "print_hide": 1,
+   "report_hide": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.docstatus==0",
+   "fieldname": "is_paid",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Is Paid",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "bill_no",
+   "fieldtype": "Data",
+   "label": "Supplier Invoice No"
+  },
+  {
+   "fieldname": "bill_date",
+   "fieldtype": "Date",
+   "label": "Supplier Invoice Date"
+  },
+  {
+   "fieldname": "tax_withholding_net_total",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Tax Withholding Net Total",
+   "options": "currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "base_tax_withholding_net_total",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Base Tax Withholding Net Total",
+   "options": "currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "base_taxes_and_charges_added",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Taxes and Charges Added (Company Currency)",
+   "oldfieldname": "other_charges_total",
+   "oldfieldtype": "Currency",
+   "options": "Company:company:default_currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "base_taxes_and_charges_deducted",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Taxes and Charges Deducted (Company Currency)",
+   "oldfieldname": "other_charges_total",
+   "oldfieldtype": "Currency",
+   "options": "Company:company:default_currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "taxes_and_charges_added",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Taxes and Charges Added",
+   "options": "currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "taxes_and_charges_deducted",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Taxes and Charges Deducted",
+   "options": "currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_commission_rate",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "in_list_view": 1,
+   "label": "Total Commission Rate",
+   "oldfieldname": "grand_total_export",
+   "oldfieldtype": "Currency",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "base_total_commission_rate",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "in_list_view": 1,
+   "label": "Total Commission Rate (Company Currency)",
+   "oldfieldname": "grand_total_export",
+   "oldfieldtype": "Currency",
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.docstatus==0",
+   "fieldname": "is_multiple_suppliers",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "is Multiple suppliers",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "total_buying_rate",
+   "fieldtype": "Float",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Total Buying Rate",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ylit",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-file-text",
@@ -2125,7 +2243,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2024-05-15 11:48:40.052033",
+ "modified": "2024-05-25 18:06:43.108993",
  "modified_by": "Administrator",
  "module": "Services Company",
  "name": "Service Invoice",
