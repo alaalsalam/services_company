@@ -367,8 +367,7 @@
    "label": "Paid Amount (Company Currency)",
    "options": "Company:company:default_currency",
    "print_hide": 1,
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "base_paid_amount_after_tax",
@@ -415,8 +414,7 @@
    "label": "Received Amount (Company Currency)",
    "options": "Company:company:default_currency",
    "print_hide": 1,
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "depends_on": "doc.received_amount",
@@ -778,7 +776,7 @@
    "table_fieldname": "payment_entries"
   }
  ],
- "modified": "2024-05-17 11:41:29.117563",
+ "modified": "2024-11-23 11:58:47.841210",
  "modified_by": "Administrator",
  "module": "Services Company",
  "name": "Servic Entry",

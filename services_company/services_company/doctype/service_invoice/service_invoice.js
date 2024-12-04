@@ -104,6 +104,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 
 		if (this.frm.doc.is_return) {
 			this.frm.return_print_format = "Sales Invoice Return";
+			
 		}
 
 		this.show_general_ledger();
@@ -274,7 +275,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 			);
 		}
 
-		this.calculate_outstanding_amount(false);
+		self.calculate_outstanding_amount(false);
 		this.frm.refresh_fields();
 	}
 
@@ -605,6 +606,16 @@ cur_frm.set_query("debit_to", function (doc) {
 		},
 	};
 });
+cur_frm.fields_dict["credit_to"].get_query = function (doc) {
+	// filter on Account
+	return {
+		filters: {
+			account_type: "Payable",
+			is_group: 0,
+			company: doc.company,
+		},
+	};
+};
 
 frappe.ui.form.on("Service Invoice", {
 	setup: function (frm) {

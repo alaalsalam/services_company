@@ -218,7 +218,8 @@
   "is_discounted",
   "remarks",
   "repost_required",
-  "connections_tab"
+  "connections_tab",
+  "amended_from1"
  ],
  "fields": [
   {
@@ -272,18 +273,10 @@
    "search_index": 1
   },
   {
-   "bold": 1,
-   "depends_on": "customer",
    "fetch_from": "customer.customer_name",
    "fieldname": "customer_name",
    "fieldtype": "Small Text",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "in_global_search": 1,
-   "label": "Customer Name",
-   "oldfieldname": "customer_name",
-   "oldfieldtype": "Data",
-   "read_only": 1
+   "label": "Customer Name"
   },
   {
    "fieldname": "company",
@@ -376,7 +369,7 @@
    "hide_seconds": 1,
    "label": "Return Against",
    "no_copy": 1,
-   "options": "Sales Invoice",
+   "options": "Service Invoice",
    "print_hide": 1,
    "read_only_depends_on": "eval:doc.is_return",
    "search_index": 1
@@ -391,7 +384,7 @@
    "no_copy": 1,
    "oldfieldname": "amended_from",
    "oldfieldtype": "Link",
-   "options": "Sales Invoice",
+   "options": "Service Invoice",
    "print_hide": 1,
    "read_only": 1
   },
@@ -864,8 +857,7 @@
    "oldfieldname": "outstanding_amount",
    "oldfieldtype": "Currency",
    "options": "party_account_currency",
-   "print_hide": 1,
-   "read_only": 1
+   "print_hide": 1
   },
   {
    "default": "0",
@@ -1057,8 +1049,8 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:!doc.is_pos",
-   "depends_on": "eval:doc.is_pos===1",
+   "collapsible_depends_on": "eval:!doc.is_paid",
+   "depends_on": "eval:doc.is_paid===1",
    "fieldname": "payments_section",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -1068,7 +1060,7 @@
   },
   {
    "allow_on_submit": 1,
-   "depends_on": "is_pos",
+   "depends_on": "is_paid",
    "fieldname": "cash_bank_account",
    "fieldtype": "Link",
    "hidden": 1,
@@ -1081,14 +1073,13 @@
    "print_hide": 1
   },
   {
-   "depends_on": "eval:doc.is_pos===1",
+   "depends_on": "eval:doc.is_paid===1",
    "fieldname": "payments",
    "fieldtype": "Table",
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Sales Invoice Payment",
-   "options": "Sales Invoice Payment",
-   "print_hide": 1
+   "options": "Sales Invoice Payment"
   },
   {
    "fieldname": "section_break_84",
@@ -1097,7 +1088,7 @@
    "hide_seconds": 1
   },
   {
-   "depends_on": "eval: doc.is_pos || doc.redeem_loyalty_points",
+   "depends_on": "eval: doc.is_paid || doc.redeem_loyalty_points",
    "fieldname": "base_paid_amount",
    "fieldtype": "Currency",
    "hide_days": 1,
@@ -1115,7 +1106,7 @@
    "hide_seconds": 1
   },
   {
-   "depends_on": "eval: doc.is_pos || doc.redeem_loyalty_points",
+   "depends_on": "eval: doc.is_paid || doc.redeem_loyalty_points",
    "fieldname": "paid_amount",
    "fieldtype": "Currency",
    "hide_days": 1,
@@ -1228,7 +1219,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "write_off_amount",
-   "depends_on": "is_pos",
+   "depends_on": "is_paid",
    "fieldname": "write_off_section",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -1260,7 +1251,7 @@
   },
   {
    "default": "0",
-   "depends_on": "is_pos",
+   "depends_on": "is_paid",
    "fieldname": "write_off_outstanding_amount_automatically",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -2048,7 +2039,7 @@
    "no_copy": 1,
    "oldfieldname": "amended_from",
    "oldfieldtype": "Link",
-   "options": "Sales Invoice",
+   "options": "Service Invoice",
    "print_hide": 1,
    "read_only": 1
   },
@@ -2232,6 +2223,20 @@
   {
    "fieldname": "column_break_ylit",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from1",
+   "fieldtype": "Link",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "ignore_user_permissions": 1,
+   "label": "Amended From",
+   "no_copy": 1,
+   "oldfieldname": "amended_from",
+   "oldfieldtype": "Link",
+   "options": "Sales Invoice",
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "icon": "fa fa-file-text",
@@ -2243,7 +2248,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2024-05-25 18:06:43.108993",
+ "modified": "2024-11-25 11:14:01.306274",
  "modified_by": "Administrator",
  "module": "Services Company",
  "name": "Service Invoice",

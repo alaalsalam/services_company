@@ -55,6 +55,7 @@ form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
 
 
 class ServiceInvoice(SellingController):
+	
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -111,6 +112,7 @@ class ServiceInvoice(SellingController):
 		self.add_remarks()
 		self.validate_item_cost_centers()
 		self.check_conversion_rate()
+		self.set_status()
   
 
 
@@ -517,7 +519,7 @@ class ServiceInvoice(SellingController):
 		self.negative_expense_to_be_booked = 0.0
 		gl_entries = []
 
-		# self.make_supplier_gl_entry(gl_entries)
+		self.make_supplier_gl_entry(gl_entries)
 		self.make_customer_gl_entry(gl_entries)
 
 		self.make_tax_gl_entries2(gl_entries)
@@ -1173,12 +1175,14 @@ class ServiceInvoice(SellingController):
 
 
 	def set_status(self, update=False, status=None, update_modified=True):
+   
 		if self.is_new():
 			if self.get("amended_from"):
 				self.status = "Draft"
 			return
 
 		outstanding_amount = flt(self.outstanding_amount, self.precision("outstanding_amount"))
+
 		total = get_total_in_party_account_currency(self)
 
 		if not status:
@@ -1193,13 +1197,13 @@ class ServiceInvoice(SellingController):
 					self.status = "Partly Paid"
 				elif outstanding_amount > 0 and getdate(self.due_date) >= getdate():
 					self.status = "Unpaid"
-				# Check if outstanding amount is 0 due to credit note issued against invoice
 				elif self.is_return == 0 and frappe.db.get_value(
-					"Sales Invoice", {"is_return": 1, "return_against": self.name, "docstatus": 1}
+					"Service Invoice", {"is_return": 1, "return_against": self.name, "docstatus": 1}
 				):
 					self.status = "Credit Note Issued"
 				elif self.is_return == 1:
 					self.status = "Return"
+					print("Status set to 'Return'.")
 				elif outstanding_amount <= 0:
 					self.status = "Paid"
 				else:
@@ -1211,14 +1215,13 @@ class ServiceInvoice(SellingController):
 					and get_discounting_status(self.name) == "Disbursed"
 				):
 					self.status += " and Discounted"
+					print(f"Status updated to '{self.status}' due to discounting.")
 
 			else:
 				self.status = "Draft"
 
 		if update:
 			self.db_set("status", self.status, update_modified=update_modified)
-
-
 
 	def calculate_outstanding_amount(self):
 		# NOTE:
