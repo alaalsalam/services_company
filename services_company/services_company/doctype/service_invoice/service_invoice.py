@@ -519,70 +519,91 @@ class ServiceInvoice(SellingController):
 		self.negative_expense_to_be_booked = 0.0
 		gl_entries = []
 
-		self.make_supplier_gl_entry(gl_entries)
+		
 		self.make_customer_gl_entry(gl_entries)
+		self.make_item_gl_entries(gl_entries)
 
-		self.make_tax_gl_entries2(gl_entries)
-		self.make_internal_transfer_gl_entries(gl_entries)
-
-		self.make_item_gl_entries2(gl_entries)
-		self.make_precision_loss_gl_entry(gl_entries)
-		make_discount_gl_entries(self,gl_entries)
+		# self.make_tax_gl_entries2(gl_entries)
+		# self.make_internal_transfer_gl_entries(gl_entries)
+		self.make_supplier_gl_entry(gl_entries)
+		self.make_item_gl_entries5(gl_entries)
+		
+		# self.make_precision_loss_gl_entry(gl_entries)
+		# make_discount_gl_entries(self,gl_entries)
 
 		self.make_payment_gl_entries(gl_entries)
-		self.make_write_off_gl_entry(gl_entries)
-		self.make_gle_for_rounding_adjustment(gl_entries)
-		# merge gl entries before adding pos entries
-		gl_entries = merge_similar_entries(gl_entries)
+		# self.make_write_off_gl_entry(gl_entries)
+		# self.make_gle_for_rounding_adjustment(gl_entries)
+		# # merge gl entries before adding pos entries
+		# gl_entries = merge_similar_entries(gl_entries)
 
-		self.make_loyalty_point_redemption_gle(gl_entries)
-		# self.make_pos_gl_entries(gl_entries)
+		# self.make_loyalty_point_redemption_gle(gl_entries)
+		# # self.make_pos_gl_entries(gl_entries)
 
-		self.make_write_off_gl_entry(gl_entries)
-		self.make_gle_for_rounding_adjustment(gl_entries)
+		# self.make_write_off_gl_entry(gl_entries)
+		# self.make_gle_for_rounding_adjustment(gl_entries)
 
 		return gl_entries
  #---------------------------------------------------------------------
 	def make_supplier_gl_entry(self, gl_entries):
+		if self.is_multiple_suppliers ==0:
 		# Checked both rounding_adjustment and rounded_total
-		# because rounded_total had value even before introduction of posting GLE based on rounded total
-		grand_total = (
-			self.rounded_total if (self.rounding_adjustment and self.rounded_total) else self.grand_total
-		)
-		base_grand_total = flt(
-			self.base_rounded_total
-			if (self.base_rounding_adjustment and self.base_rounded_total)
-			else self.base_grand_total,
-			self.precision("base_grand_total"),
-		)
-
-		if grand_total and not self.is_internal_transfer():
-			against_voucher = self.name
-			if self.is_return and self.return_against and not self.update_outstanding_for_self:
-				against_voucher = self.return_against
-
-			# Did not use base_grand_total to book rounding loss gle
-			gl_entries.append(
-				self.get_gl_dict(
-					{
-						"account": self.credit_to,
-						"party_type": "Supplier",
-						"party": self.supplier,
-						"due_date": self.due_date,
-						"against": self.against_expense_account,
-						"credit": base_grand_total,
-						"credit_in_account_currency": base_grand_total
-						if self.party_account_currency == self.company_currency
-						else grand_total,
-						"against_voucher": against_voucher,
-						"against_voucher_type": self.doctype,
-						"project": self.project,
-						"cost_center": self.cost_center,
-					},
-					self.party_account_currency,
-					item=self,
-				)
+			# because rounded_total had value even before introduction of posting GLE based on rounded total
+			grand_total = (
+				self.rounded_total if (self.rounding_adjustment and self.rounded_total) else self.grand_total
 			)
+			base_grand_total = flt(
+				self.base_rounded_total
+				if (self.base_rounding_adjustment and self.base_rounded_total)
+				else self.base_grand_total,
+				self.precision("base_grand_total"),
+			)
+
+			if grand_total and not self.is_internal_transfer():
+				against_voucher = self.name
+				if self.is_return and self.return_against and not self.update_outstanding_for_self:
+					against_voucher = self.return_against
+
+				# Did not use base_grand_total to book rounding loss gle
+				gl_entries.append(
+					self.get_gl_dict(
+						{
+							"account": self.credit_to,
+							"party_type": "Supplier",
+							"party": self.supplier,
+							"due_date": self.due_date,
+							"against": self.against_expense_account,
+							"credit": self.total_buying_rate_t,
+							# "credit_in_account_currency": base_grand_total
+							# if self.party_account_currency == self.company_currency
+							# else grand_total,
+							"against_voucher": against_voucher,
+							"against_voucher_type": self.doctype,
+							"project": self.project,
+							"cost_center": self.cost_center,
+						},
+						self.party_account_currency,
+						item=self,
+					)
+				)
+				gl_entries.append(
+					self.get_gl_dict(
+						{
+							"account": self.against_expense_account,
+							
+							"due_date": self.due_date,
+							"against": self.credit_to,
+							"debit": self.total_buying_rate_t,
+							
+							"against_voucher": against_voucher,
+							"against_voucher_type": self.doctype,
+							"project": self.project,
+							"cost_center": self.cost_center,
+						},
+						self.party_account_currency,
+						item=self,
+					)
+				)
 
 
  #---------------------------------------------------------------------
@@ -673,6 +694,23 @@ class ServiceInvoice(SellingController):
 					item=self,
 				)
 			)
+	# def make_tax_gl_entries1(self, gl_entries):		
+	# 		gl_entries.append(
+	# 			self.get_gl_dict(
+	# 				{
+	# 					"account": self.against_income_account,
+	# 					"against": self.customer,
+	# 					"credit": self.base_grand_total,
+	# 					"credit_in_account_currency": self.base_paid_amount,
+	# 					"due_date": self.due_date,
+
+	# 					"cost_center": self.cost_center,
+	# 				},
+					
+	# 				item=self,
+	# 			)
+	# 		)
+
 
 
 	def make_tax_gl_entries(self, gl_entries):
@@ -841,20 +879,186 @@ class ServiceInvoice(SellingController):
 							item=item,
 						)
 					)
-					gl_entries.append(
-						self.get_gl_dict(
-							{
-								"account": expense_account,
-								"against": self.supplier,
-								"debit": flt(base_amount, item.precision("base_net_amount")),
-								"remarks": self.get("remarks") or _("Accounting Entry for Stock"),
+	def make_item_gl_entries5(self, gl_entries):
+		if self.is_multiple_suppliers:
+			# Enable discount accounting setting
+			enable_discount_accounting = cint(
+				frappe.db.get_single_value("Selling Settings", "enable_discount_accounting")
+			)
+
+			for item in self.get("items"):
+				if flt(item.base_net_amount, item.precision("base_net_amount")):
+					if not self.is_internal_transfer():
+						# Determine income and expense accounts
+						income_account = (
+							item.income_account
+							if (not item.enable_deferred_revenue or self.is_return)
+							else item.deferred_revenue_account
+						)
+						expense_account = (
+							item.expense_account
+							if (not item.enable_deferred_expense or self.is_return)
+							else item.deferred_expense_account
+						)
+
+						amount, base_amount = self.get_amount_and_base_amount(
+							item, enable_discount_accounting
+						)
+
+						account_currency = get_account_currency(income_account)
+						supplier_account_currency = get_account_currency(item.credit_to)
+
+						# Add GL entry for supplier credit
+						gl_entries.append(
+							self.get_gl_dict(
+								{
+									"account": item.credit_to,
+									"party_type": "Supplier",
+									"party": item.supplier,
+									"against": item.expense_account,
+									"credit": flt(item.byuing_amount_t, item.precision("byuing_amount_t")),
+									"credit_in_account_currency": (
+										flt(item.byuing_amount_t, item.precision("byuing_amount_t"))
+										if supplier_account_currency == self.company_currency
+										else flt(amount, item.precision("net_amount"))
+									),
+									"remarks": self.get("remarks"),
+									"cost_center": item.cost_center,
+									"project": item.project or self.project,
+								},
+								supplier_account_currency,
+								item=item,
+							)
+						)
+
+						# Add GL entry for expense account (debit)
+						gl_entries.append(
+							self.get_gl_dict(
+								{
+									"account": item.expense_account,
+									"against": item.credit_to,
+									"debit": flt(item.byuing_amount_t, item.precision("byuing_amount_t")),
+									"debit_in_account_currency": (
+										flt(item.byuing_amount_t, item.precision("byuing_amount_t"))
+										if account_currency == self.company_currency
+										else flt(amount, item.precision("net_amount"))
+									),
+									"remarks": self.get("remarks"),
+									"cost_center": item.cost_center,
+									"project": item.project or self.project,
+								},
+								account_currency,
+								item=item,
+							)
+						)
+
+					# gl_entries.append(
+					# 	self.get_gl_dict(
+					# 		{
+					# 			"account": expense_account,
+					# 			"against": self.supplier,
+					# 			"debit": flt(base_amount, item.precision("base_net_amount")),
+					# 			"remarks": self.get("remarks") or _("Accounting Entry for Stock"),
+					# 			"cost_center": item.cost_center,
+					# 			"project": item.project or self.project,
+					# 		},
+					# 		account_currency,
+					# 		item=item,
+					# 	)
+					# )
+	# def make_multi_supplier_gl_entries(self, gl_entries)				
+	def make_item_gl_entries1(self, gl_entries):
+		if self.is_multiple_suppliers:
+			# income account gl entries
+			enable_discount_accounting = cint(
+				frappe.db.get_single_value("Selling Settings", "enable_discount_accounting")
+			)
+
+			# هنا نحتفظ بمجموع المبالغ لكل حساب
+			grouped_entries = {}
+
+			for item in self.get("items"):
+				if flt(item.base_net_amount, item.precision("base_net_amount")):
+					if not self.is_internal_transfer():
+						income_account = (
+							item.income_account
+							if (not item.enable_deferred_revenue or self.is_return)
+							else item.deferred_revenue_account
+						)
+						expense_account = (
+							item.expense_account
+							if (not item.enable_deferred_expense or self.is_return)
+							else item.deferred_expense_account
+						)
+
+						byuing_amount_t = item.byuing_amount_t
+						commission_account = item.commission_account
+						commission_amount_t = item.commission_amount_t
+
+						amount, base_amount = self.get_amount_and_base_amount(
+							item, enable_discount_accounting
+						)
+
+						account_currency = get_account_currency(income_account)
+
+						# استخدام حساب المورد لكل عنصر في القيود
+						supplier_account = item.credit_to or self.get_default_supplier_account(item)
+
+						# إذا كان الحساب موجودًا بالفعل في grouped_entries نقوم بتحديث المبالغ
+						if supplier_account in grouped_entries:
+							grouped_entries[supplier_account]["credit"] += flt(byuing_amount_t, item.precision("byuing_amount_t"))
+							grouped_entries[supplier_account]["credit_in_account_currency"] += flt(byuing_amount_t, item.precision("byuing_amount_t")) if account_currency == self.company_currency else flt(amount, item.precision("net_amount"))
+						else:
+							grouped_entries[supplier_account] = {
+								"credit": flt(byuing_amount_t, item.precision("byuing_amount_t")),
+								"credit_in_account_currency": flt(byuing_amount_t, item.precision("byuing_amount_t")) if account_currency == self.company_currency else flt(amount, item.precision("net_amount")),
+								"remarks": self.get("remarks"),
 								"cost_center": item.cost_center,
 								"project": item.project or self.project,
-							},
-							account_currency,
-							item=item,
-						)
+								"item": item,
+								"commission_account": commission_account,
+								"commission_amount_t": commission_amount_t,
+							}
+
+			# الآن نقوم بإضافة القيود المحاسبية للمجموعة التي تم دمجها
+			for supplier_account, entry in grouped_entries.items():
+				# القيد الأساسي
+				gl_entries.append(
+					self.get_gl_dict(
+						{
+							"account": supplier_account,
+							"party_type": "Supplier",
+							"party": item.supplier,
+							"against": self.debit_to,
+							"credit": entry["credit"],
+							"credit_in_account_currency": entry["credit_in_account_currency"],
+							"remarks": entry["remarks"],
+							"cost_center": entry["cost_center"],
+							"project": entry["project"],
+						},
+						account_currency,
+						item=entry["item"],
 					)
+				)
+
+				# القيد الدائن الجديد لقيم العمولة
+				gl_entries.append(
+					self.get_gl_dict(
+						{
+							"account": entry["expense_account"],
+							
+							"against": self.debit_to,
+							"d": entry["credit"],
+							"credit_in_account_currency": entry["commission_amount_t"] if account_currency == self.company_currency else flt(entry["commission_amount_t"], item.precision("commission_amount_t")),
+							"remarks": entry["remarks"],
+							"cost_center": entry["cost_center"],
+							"project": entry["project"],
+						},
+						account_currency,
+						item=entry["item"],
+					)
+				)
+						
 
 
 	def make_item_gl_entries2(self, gl_entries):
@@ -1224,6 +1428,7 @@ class ServiceInvoice(SellingController):
 			self.db_set("status", self.status, update_modified=update_modified)
 
 	def calculate_outstanding_amount(self):
+		frappe.msgprint("hiiiiii")
 		# NOTE:
 		# write_off_amount is only for POS Invoice
 		# total_advance is only for non POS Invoice
@@ -1300,6 +1505,89 @@ class ServiceInvoice(SellingController):
 			):
 				self.set_total_amount_to_default_mop(total_amount_to_pay)
 				self.calculate_paid_amount()
+	
+	def calculate_paid_amount(self):
+		paid_amount = base_paid_amount = 0.0
+
+		if self.doc.is_pos:
+			for payment in self.doc.get("payments"):
+				payment.amount = flt(payment.amount)
+				payment.base_amount = payment.amount * flt(self.doc.conversion_rate)
+				paid_amount += payment.amount
+				base_paid_amount += payment.base_amount
+		elif not self.doc.is_return:
+			self.doc.set("payments", [])
+
+		if self.doc.redeem_loyalty_points and self.doc.loyalty_amount:
+			base_paid_amount += self.doc.loyalty_amount
+			paid_amount += self.doc.loyalty_amount / flt(self.doc.conversion_rate)
+
+		self.doc.paid_amount = flt(paid_amount, self.doc.precision("paid_amount"))
+		self.doc.base_paid_amount = flt(base_paid_amount, self.doc.precision("base_paid_amount"))
+
+	def calculate_change_amount(self):
+		self.doc.change_amount = 0.0
+		self.doc.base_change_amount = 0.0
+		grand_total = self.doc.rounded_total or self.doc.grand_total
+		base_grand_total = self.doc.base_rounded_total or self.doc.base_grand_total
+
+		if (
+			self.doc.doctype == "Sales Invoice"
+			and self.doc.paid_amount > grand_total
+			and not self.doc.is_return
+			and any(d.type == "Cash" for d in self.doc.payments)
+		):
+			self.doc.change_amount = flt(
+				self.doc.paid_amount - grand_total, self.doc.precision("change_amount")
+			)
+
+			self.doc.base_change_amount = flt(
+				self.doc.base_paid_amount - base_grand_total, self.doc.precision("base_change_amount")
+			)
+
+	def calculate_write_off_amount(self):
+		if self.doc.get("write_off_outstanding_amount_automatically"):
+			self.doc.write_off_amount = flt(
+				self.doc.outstanding_amount, self.doc.precision("write_off_amount")
+			)
+			self.doc.base_write_off_amount = flt(
+				self.doc.write_off_amount * self.doc.conversion_rate,
+				self.doc.precision("base_write_off_amount"),
+			)
+
+			self.calculate_outstanding_amount()
+	
+	def set_total_amount_to_default_mop(self, total_amount_to_pay):
+		total_paid_amount = 0
+		for payment in self.doc.get("payments"):
+			total_paid_amount += (
+				payment.amount
+				if self.doc.party_account_currency == self.doc.currency
+				else payment.base_amount
+			)
+
+		pending_amount = total_amount_to_pay - total_paid_amount
+
+		if pending_amount > 0:
+			default_mode_of_payment = frappe.db.get_value(
+				"POS Payment Method",
+				{"parent": self.doc.pos_profile, "default": 1},
+				["mode_of_payment"],
+				as_dict=1,
+			)
+
+			if default_mode_of_payment:
+				self.doc.payments = []
+				self.doc.append(
+					"payments",
+					{
+						"mode_of_payment": default_mode_of_payment.mode_of_payment,
+						"amount": pending_amount,
+						"default": 1,
+					},
+				)
+		
+			
 
 	# ------------------------------------- ALa
 	def validate_cash(self):

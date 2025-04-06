@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-20 22:12:47.498688",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "task_name",
+  "assigned_to",
+  "status",
+  "due_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "task_name",
+   "fieldtype": "Data",
+   "label": "\u0627\u0633\u0645 \u0627\u0644\u0645\u0647\u0645\u0629"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Data",
+   "label": "\u0645\u064f\u0633\u0646\u062f \u0625\u0644\u0649"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "\u0644\u062d\u0627\u0644\u0629",
+   "options": "Open\nIn Progress\nCompleted"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0627\u0633\u062a\u062d\u0642\u0627\u0642"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-01-20 22:18:32.142076",
+ "modified_by": "Administrator",
+ "module": "Services Company",
+ "name": "Task Manager",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

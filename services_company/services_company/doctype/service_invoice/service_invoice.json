@@ -21,7 +21,6 @@
   "is_multiple_suppliers",
   "is_return",
   "return_against",
-  "amended_from",
   "section_break_lyjh",
   "customer",
   "customer_name",
@@ -55,8 +54,8 @@
   "net_total",
   "tax_withholding_net_total",
   "column_break_ylit",
-  "total_buying_rate",
-  "total_commission_rate",
+  "total_buying_rate_t",
+  "total_commission_rate_t",
   "base_tax_withholding_net_total",
   "taxes_section",
   "tax_category",
@@ -77,6 +76,8 @@
   "taxes_and_charges_deducted",
   "total_taxes_and_charges",
   "totals",
+  "grand_total_due_to_company",
+  "outstanding_amount_due_to_company",
   "base_grand_total",
   "base_rounding_adjustment",
   "base_rounded_total",
@@ -185,6 +186,7 @@
   "unrealized_profit_loss_account",
   "column_break8",
   "credit_to",
+  "commission_account",
   "against_expense_account",
   "sales_team_section_break",
   "sales_partner",
@@ -219,7 +221,7 @@
   "remarks",
   "repost_required",
   "connections_tab",
-  "amended_from1"
+  "amended_from"
  ],
  "fields": [
   {
@@ -373,20 +375,6 @@
    "print_hide": 1,
    "read_only_depends_on": "eval:doc.is_return",
    "search_index": 1
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "ignore_user_permissions": 1,
-   "label": "Amended From",
-   "no_copy": 1,
-   "oldfieldname": "amended_from",
-   "oldfieldtype": "Link",
-   "options": "Service Invoice",
-   "print_hide": 1,
-   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -857,7 +845,8 @@
    "oldfieldname": "outstanding_amount",
    "oldfieldtype": "Currency",
    "options": "party_account_currency",
-   "print_hide": 1
+   "print_hide": 1,
+   "read_only": 1
   },
   {
    "default": "0",
@@ -1063,7 +1052,6 @@
    "depends_on": "is_paid",
    "fieldname": "cash_bank_account",
    "fieldtype": "Link",
-   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Cash/Bank Account",
@@ -1073,7 +1061,6 @@
    "print_hide": 1
   },
   {
-   "depends_on": "eval:doc.is_paid===1",
    "fieldname": "payments",
    "fieldtype": "Table",
    "hide_days": 1,
@@ -2030,20 +2017,7 @@
    "show_dashboard": 1
   },
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "ignore_user_permissions": 1,
-   "label": "Amended From",
-   "no_copy": 1,
-   "oldfieldname": "amended_from",
-   "oldfieldtype": "Link",
-   "options": "Service Invoice",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
+   "depends_on": "eval:!doc.is_multiple_suppliers",
    "fieldname": "supplier",
    "fieldtype": "Link",
    "label": "Supplier",
@@ -2051,6 +2025,7 @@
   },
   {
    "bold": 1,
+   "depends_on": "eval:!doc.is_multiple_suppliers",
    "fetch_from": "supplier.supplier_name",
    "fieldname": "supplier_name",
    "fieldtype": "Data",
@@ -2102,11 +2077,13 @@
    "print_hide": 1
   },
   {
+   "depends_on": "eval:!doc.is_multiple_suppliers",
    "fieldname": "bill_no",
    "fieldtype": "Data",
    "label": "Supplier Invoice No"
   },
   {
+   "depends_on": "eval:!doc.is_multiple_suppliers",
    "fieldname": "bill_date",
    "fieldtype": "Date",
    "label": "Supplier Invoice Date"
@@ -2177,19 +2154,6 @@
   },
   {
    "bold": 1,
-   "fieldname": "total_commission_rate",
-   "fieldtype": "Currency",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "in_list_view": 1,
-   "label": "Total Commission Rate",
-   "oldfieldname": "grand_total_export",
-   "oldfieldtype": "Currency",
-   "options": "currency",
-   "read_only": 1
-  },
-  {
-   "bold": 1,
    "fieldname": "base_total_commission_rate",
    "fieldtype": "Currency",
    "hide_days": 1,
@@ -2212,7 +2176,40 @@
    "print_hide": 1
   },
   {
-   "fieldname": "total_buying_rate",
+   "fieldname": "column_break_ylit",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "default": "1",
+   "fieldname": "grand_total_due_to_company",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "in_list_view": 1,
+   "label": "Grand Total Due to Company",
+   "oldfieldname": "grand_total_export",
+   "oldfieldtype": "Currency",
+   "options": "currency",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "outstanding_amount_due_to_company",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Outstanding Amount Due to Company",
+   "no_copy": 1,
+   "oldfieldname": "outstanding_amount",
+   "oldfieldtype": "Currency",
+   "options": "party_account_currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_buying_rate_t",
    "fieldtype": "Float",
    "hide_days": 1,
    "hide_seconds": 1,
@@ -2221,22 +2218,34 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_ylit",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "amended_from1",
-   "fieldtype": "Link",
+   "bold": 1,
+   "fieldname": "total_commission_rate_t",
+   "fieldtype": "Currency",
    "hide_days": 1,
    "hide_seconds": 1,
-   "ignore_user_permissions": 1,
+   "in_list_view": 1,
+   "label": "Total Commission Rate",
+   "oldfieldname": "grand_total_export",
+   "oldfieldtype": "Currency",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "oldfieldname": "amended_from",
-   "oldfieldtype": "Link",
-   "options": "Sales Invoice",
+   "options": "Service Invoice",
    "print_hide": 1,
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "commission_account",
+   "fieldtype": "Link",
+   "label": "Commission Account",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "icon": "fa fa-file-text",
@@ -2248,7 +2257,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2024-11-25 11:14:01.306274",
+ "modified": "2025-01-21 13:32:22.029428",
  "modified_by": "Administrator",
  "module": "Services Company",
  "name": "Service Invoice",

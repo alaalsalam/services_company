@@ -45,17 +45,17 @@
   "pricing_rules",
   "item_tax_template",
   "col_break3",
-  "buying_rate",
+  "buying_rate_t",
   "base_buying_rate",
-  "byuing_amount",
+  "byuing_amount_t",
   "base_buying_amount",
   "valuation_rate",
   "is_free_item",
   "grant_commission",
   "column_break_ofux",
-  "commission_rate",
+  "commission_rate_t",
   "base_commission_rate",
-  "commission_amount",
+  "commission_amount_t",
   "base_commission_amount",
   "section_break_21",
   "net_rate",
@@ -744,18 +744,6 @@
    "read_only": 1
   },
   {
-   "bold": 1,
-   "columns": 2,
-   "fieldname": "buying_rate",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Buying Rate",
-   "oldfieldname": "export_rate",
-   "oldfieldtype": "Currency",
-   "options": "currency",
-   "reqd": 1
-  },
-  {
    "fieldname": "base_buying_rate",
    "fieldtype": "Currency",
    "label": "Buying Rate (Company Currency)",
@@ -790,12 +778,6 @@
    "width": "120px"
   },
   {
-   "fieldname": "commission_rate",
-   "fieldtype": "Float",
-   "label": "Commission Rate",
-   "print_hide": 1
-  },
-  {
    "fieldname": "supplier_invoice_no",
    "fieldtype": "Data",
    "label": "Supplier Invoice No"
@@ -804,18 +786,6 @@
    "fieldname": "supplier_invoice_date",
    "fieldtype": "Date",
    "label": "Supplier Invoice Date"
-  },
-  {
-   "columns": 2,
-   "fieldname": "byuing_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Byuing Amount",
-   "oldfieldname": "export_amount",
-   "oldfieldtype": "Currency",
-   "options": "currency",
-   "read_only": 1,
-   "reqd": 1
   },
   {
    "fieldname": "base_buying_amount",
@@ -839,18 +809,6 @@
    "print_hide": 1
   },
   {
-   "columns": 2,
-   "fieldname": "commission_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Commission Amount",
-   "oldfieldname": "export_amount",
-   "oldfieldtype": "Currency",
-   "options": "currency",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "base_commission_amount",
    "fieldtype": "Currency",
    "label": "Commission Amount (Company Currency)",
@@ -868,11 +826,55 @@
    "options": "currency",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "bold": 1,
+   "columns": 1,
+   "fieldname": "buying_rate_t",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Buying Rate",
+   "oldfieldname": "export_rate",
+   "oldfieldtype": "Currency",
+   "options": "currency",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "byuing_amount_t",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Byuing Amount",
+   "oldfieldname": "export_amount",
+   "oldfieldtype": "Currency",
+   "options": "currency",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "commission_rate_t",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Commission Rate",
+   "print_hide": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "commission_amount_t",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Commission Amount",
+   "oldfieldname": "export_amount",
+   "oldfieldtype": "Currency",
+   "options": "currency",
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2024-06-02 12:42:50.086692",
+ "modified": "2025-01-21 00:42:09.378872",
  "modified_by": "Administrator",
  "module": "Services Company",
  "name": "Service Invoice Item",

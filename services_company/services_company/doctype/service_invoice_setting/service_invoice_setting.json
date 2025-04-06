@@ -1,0 +1,41 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-20 01:28:49.231277",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "commission_account"
+ ],
+ "fields": [
+  {
+   "fieldname": "commission_account",
+   "fieldtype": "Link",
+   "label": "Commission Account",
+   "options": "Account"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-01-20 01:29:28.074717",
+ "modified_by": "Administrator",
+ "module": "Services Company",
+ "name": "Service Invoice Setting",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -8,7 +8,7 @@ app_email = "alaalsalam101@gmail.com"
 app_license = "MIT"
 
 override_doctype_class = {
-    "Sales Invoice": "services_company.services_company.overrides.sales_invoice.CustomSalesInvoice",
+    # "Sales Invoice": "services_company.services_company.overrides.sales_invoice.CustomSalesInvoice",
     #"AccountsController": "services_company.services_company.overrides.accounts_controller.CustomAccountsController"
     "Purchase Invoice":"services_company.services_company.overrides.purchase_invoice.CustomSalesInvoices",
     "Journal Entry":"services_company.services_company.overrides.journal_entry.CustomJournalEntry"
@@ -17,7 +17,7 @@ override_doctype_class = {
 doctype_js = {
     
     
-    "Sales Invoice" : "public/js/sales_invoice.js",
+    # "Sales Invoice" : "public/js/sales_invoice.js",
     "Purchase Invoice" : "public/js/purchase_invoice.js",
     "Delivery Note":"public/js/delivery_note.js"
    
@@ -25,6 +25,11 @@ doctype_js = {
  
 
  }
+doc_events = {
+    "Payment Entry": {
+        "on_submit": "services_company.services_company.api.update_service_invoice"
+    }
+}
 # Includes in <head>
 # ------------------
 

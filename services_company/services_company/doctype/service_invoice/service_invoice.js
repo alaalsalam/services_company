@@ -194,7 +194,38 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 	}
 	tc_name() {
 		this.get_terms();
+	}supplier() {
+		var me = this;
+
+		// Do not update if inter company reference is there as the details will already be updated
+		if (this.frm.updating_party_details || this.frm.doc.inter_company_invoice_reference) return;
+
+		if (this.frm.doc.__onload && this.frm.doc.__onload.load_after_mapping) return;
+
+		erpnext.utils.get_party_details(
+			this.frm,
+			"erpnext.accounts.party.get_party_details",
+			{
+				posting_date: this.frm.doc.posting_date,
+				bill_date: this.frm.doc.bill_date,
+				party: this.frm.doc.supplier,
+				party_type: "Supplier",
+				account: this.frm.doc.credit_to,
+				price_list: this.frm.doc.buying_price_list,
+				fetch_payment_terms_template: cint(
+					(this.frm.doc.is_return == 0) & !this.frm.doc.ignore_default_payment_terms_template
+				),
+			},
+			function () {
+				me.apply_pricing_rule();
+				me.frm.doc.apply_tds = me.frm.supplier_tds ? 1 : 0;
+				me.frm.doc.tax_withholding_category = me.frm.supplier_tds;
+				me.frm.set_df_property("apply_tds", "read_only", me.frm.supplier_tds ? 0 : 1);
+				me.frm.set_df_property("tax_withholding_category", "hidden", me.frm.supplier_tds ? 0 : 1);
+			}
+		);
 	}
+
 	customer() {
 		if (this.frm.doc.is_pos) {
 			var pos_profile = this.frm.doc.pos_profile;
@@ -203,6 +234,8 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 		if (this.frm.updating_party_details) return;
 
 		if (this.frm.doc.__onload && this.frm.doc.__onload.load_after_mapping) return;
+		console.log("Ledger Account (debit_to):", this.frm.doc.debit_to);
+
 
 		erpnext.utils.get_party_details(
 			this.frm,
@@ -214,11 +247,17 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 				account: this.frm.doc.debit_to,
 				price_list: this.frm.doc.selling_price_list,
 				pos_profile: pos_profile,
+				fetch_payment_terms_template: cint(
+					(this.frm.doc.is_return == 0) & !this.frm.doc.ignore_default_payment_terms_template
+				),
 			},
 			function () {
 				me.apply_pricing_rule();
 			}
 		);
+		setTimeout(function() {
+			console.log("Ledger Account (debit_to) after delay:", me.frm.doc.debit_to);
+		}, 3000); // 3000 milliseconds = 3 seconds
 
 		if (this.frm.doc.customer) {
 			frappe.call({
@@ -234,8 +273,6 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 			});
 		}
 	}
-
-
 
 	debit_to() {
 		var me = this;
@@ -275,9 +312,61 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 			);
 		}
 
-		self.calculate_outstanding_amount(false);
+		this.calculate_outstanding_amount(false);
 		this.frm.refresh_fields();
 	}
+	// abe
+	calculate_outstanding_amount(update_paid_amount) {
+		// NOTE:
+		// paid_amount and write_off_amount is only for POS/Loyalty Point Redemption Invoice
+		// total_advance is only for non POS Invoice
+		if(["Service Invoice", "POS Invoice"].includes(this.frm.doc.doctype) && this.frm.doc.is_return){
+			this.calculate_paid_amount();
+		}
+
+		if (this.frm.doc.is_return || (this.frm.doc.docstatus > 0) || this.is_internal_invoice()) return;
+
+		frappe.model.round_floats_in(this.frm.doc, ["grand_total", "total_advance", "write_off_amount"]);
+
+		if(["Service Invoice", "POS Invoice", "Purchase Invoice"].includes(this.frm.doc.doctype)) {
+			let grand_total = this.frm.doc.rounded_total || this.frm.doc.grand_total;
+			let base_grand_total = this.frm.doc.base_rounded_total || this.frm.doc.base_grand_total;
+
+			if(this.frm.doc.party_account_currency == this.frm.doc.currency) {
+				var total_amount_to_pay = flt((grand_total - this.frm.doc.total_advance
+					- this.frm.doc.write_off_amount), precision("grand_total"));
+			} else {
+				var total_amount_to_pay = flt(
+					(flt(base_grand_total, precision("base_grand_total"))
+						- this.frm.doc.total_advance - this.frm.doc.base_write_off_amount),
+					precision("base_grand_total")
+				);
+			}
+
+			frappe.model.round_floats_in(this.frm.doc, ["paid_amount"]);
+			this.set_in_company_currency(this.frm.doc, ["paid_amount"]);
+
+			if(this.frm.refresh_field){
+				this.frm.refresh_field("paid_amount");
+				this.frm.refresh_field("base_paid_amount");
+			}
+
+			if(["Service Invoice", "POS Invoice"].includes(this.frm.doc.doctype)) {
+				let total_amount_for_payment = (this.frm.doc.redeem_loyalty_points && this.frm.doc.loyalty_amount)
+					? flt(total_amount_to_pay - this.frm.doc.loyalty_amount, precision("base_grand_total"))
+					: total_amount_to_pay;
+				this.set_default_payment(total_amount_for_payment, update_paid_amount);
+				this.calculate_paid_amount();
+			}
+			this.calculate_change_amount();
+
+			var paid_amount = (this.frm.doc.party_account_currency == this.frm.doc.currency) ?
+				this.frm.doc.paid_amount : this.frm.doc.base_paid_amount;
+			this.frm.doc.outstanding_amount =  flt(total_amount_to_pay - flt(paid_amount) +
+				flt(this.frm.doc.change_amount * this.frm.doc.conversion_rate), precision("outstanding_amount"));
+		}
+	}
+
 
 	write_off_amount() {
 		this.set_in_company_currency(this.frm.doc, ["write_off_amount"]);
@@ -354,9 +443,9 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 		} else this.frm.trigger("refresh");
 	}
 
-	amount() {
-		this.write_off_outstanding_amount_automatically();
-	}
+	// amount() {
+	// 	this.write_off_outstanding_amount_automatically();
+	// }
 
 	change_amount() {
 		if (this.frm.doc.paid_amount > this.frm.doc.grand_total) {
@@ -618,17 +707,49 @@ cur_frm.fields_dict["credit_to"].get_query = function (doc) {
 };
 
 frappe.ui.form.on("Service Invoice", {
+	//Yemen Frappe#########################
+	is_paid: function(frm) {
+        if (!frm.doc.is_paid) {
+			
+			if (frm.fields_dict["payments"]) {
+				frm.clear_table("payments");
+	
+				frm.refresh_field("payments");
+            
+            frm.set_value('paid_amount', 0);
+			frm.save();
+			update_totals(frm);
+			}}
+    },
+	
+	onload: function(frm) {
+        frappe.call({
+            method: 'frappe.client.get',
+            args: {
+                doctype: 'Service Invoice Setting',
+                name: 'Service Invoice Setting', 
+			},
+            callback: function(data) {
+                if (data.message) {
+                    frm.set_value('commission_account', data.message.commission_account);
+                }
+            }
+        });
+		frm.redemption_conversion_factor = null;
+
+    },
+    
 	setup: function (frm) {
 		frm.fields_dict["items"].grid.get_field("item_code").get_query = function (doc) {
 			return {
 				filters: {
 					is_stock_item: 0,
 					disabled: 0,
-					is_fixed_asset:0
-				},
+					is_fixed_as
 			};
 		};
-
+    
+//###########################################
 		frm.add_fetch("customer", "tax_id", "tax_id");
 		frm.add_fetch("payment_term", "invoice_portion", "invoice_portion");
 		frm.add_fetch("payment_term", "description", "description");
@@ -676,7 +797,9 @@ frappe.ui.form.on("Service Invoice", {
 			};
 		});
 
-		frm.set_query("income_account", "items", function () {
+		
+
+		frm.set_query("commission_account", "items", function () {
 			return {
 				query: "erpnext.controllers.queries.get_income_account",
 				filters: {
@@ -810,14 +933,16 @@ frappe.ui.form.on("Service Invoice", {
 		}
 	},
 
-	onload: function (frm) {
-		frm.redemption_conversion_factor = null;
-	},
+	// onload: function (frm) {
+	// 	frm.redemption_conversion_factor = null;
+	// },
 
 	update_stock: function (frm, dt, dn) {
 		frm.events.hide_fields(frm);
 		frm.trigger("reset_posting_time");
 	},
+	//################ Yemen Frappe
+	
 
 	redeem_loyalty_points: function (frm) {
 		frm.events.get_loyalty_details(frm);
@@ -1009,7 +1134,7 @@ frappe.ui.form.on("Service Invoice", {
 			frm.doc.timesheets.reduce((a, b) => a + (b["billing_hours"] || 0.0), 0.0)
 		);
 	},
-
+//yemen frappe
 	refresh: function (frm) {
 		if (frm.doc.is_debit_note) {
 			frm.set_df_property("return_against", "label", __("Adjustment Against"));
@@ -1024,10 +1149,56 @@ frappe.ui.form.on("Service Invoice", {
 				},
 			};
 		});
-	},
+		frm.fields_dict.payments.grid.get_data().forEach(function(payment) {
+            calculate_paid_amount(frm);
+        });
+        
+        if (frm.doc.docstatus == 1 && frm.doc.status !='Paid') {
 
+			frm.add_custom_button(__('Receive Payment'), function () {
+				frappe.call({
+					method: "shipment_management.shipment_management.api.make_payment_entry",
+					args: {
+						source_name: frm.doc.name
+					},
+					callback: function (r) {
+						if (r.message) {
+							frappe.model.sync(r.message);
+							frappe.set_route("Form", r.message.doctype, r.message.name);
+						}
+					}
+				});
+			
+			},__('Payments'));}
+		
+		
+			frm.add_custom_button(__('Pay Payment'), function () {
+				frappe.call({
+					method: "services_company.services_company.api.make_payment_entry1",
+					args: {
+						source_name: frm.doc.name
+					},
+					callback: function (r) {
+						if (r.message) {
+							frappe.model.sync(r.message);
+							frappe.set_route("Form", r.message.doctype, r.message.name);
+						}
+					}
+				});
+			}, __('Payments'));
+	  
+
+
+    update_supplier_field_visibility(frm);
+    
+    
+	},
+	is_multiple_suppliers: function(frm) {
+        update_supplier_field_visibility(frm);
+    }
 	
 });
+// #######################################################
 
 frappe.ui.form.on("Sales Invoice Timesheet", {
 	timesheets_remove(frm) {
@@ -1081,4 +1252,218 @@ var select_loyalty_program = function (frm, loyalty_programs) {
 	dialog.show();
 };
 
+frappe.ui.form.on('Service Invoice Item', {
+	supplier: function(frm, cdt, cdn) {
+        var row = frappe.get_doc(cdt, cdn);
+        if (!row.supplier) return;
 
+        frappe.call({
+            method: "frappe.client.get",
+            args: {
+                doctype: "Supplier",
+                name: row.supplier,
+            },
+            callback: function (r) {
+                if (r && r.message) {
+                    let supplier = r.message;
+
+                    if (supplier.default_payable_account) {
+                        frappe.model.set_value(cdt, cdn, 'credit_to', supplier.default_payable_account);
+                        return;
+                    }
+
+                    fetch_payable_from_company(frm, cdt, cdn);
+                }
+            }
+        });
+    }
+	,
+	//Yemen frappe#############################
+    item_code: function(frm, cdt, cdn) {
+            let row = locals[cdt][cdn];
+            
+            frappe.call({
+                method: 'frappe.client.get',
+                args: {
+                    doctype: 'Service Invoice Setting',
+                    name: 'Service Invoice Setting', 
+                },
+                callback: function(data) {
+                    if (data.message) {
+                        frappe.model.set_value(cdt, cdn, 'commission_account', data.message.commission_account);
+                    }
+                }
+            });
+        }
+    ,
+	
+
+	
+    buying_rate_t: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        row.byuing_amount_t = flt(row.buying_rate_t) * flt(row.qty);
+        frappe.model.set_value(cdt, cdn, 'byuing_amount_t', row.byuing_amount_t);
+
+        row.commission_rate_t = flt(row.rate) - flt(row.buying_rate_t);
+        frappe.model.set_value(cdt, cdn, 'commission_rate_t', row.commission_rate_t);
+
+        row.commission_amount_t = row.commission_rate_t * flt(row.qty);
+        frappe.model.set_value(cdt, cdn, 'commission_amount_t', row.commission_amount_t);
+
+        frm.refresh_field('items');
+        update_totals(frm);
+    },
+    qty: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        row.byuing_amount_t = flt(row.buying_rate_t) * flt(row.qty);
+        frappe.model.set_value(cdt, cdn, 'byuing_amount_t', row.byuing_amount_t);
+
+        row.commission_rate_t = flt(row.rate) - flt(row.buying_rate_t);
+        frappe.model.set_value(cdt, cdn, 'commission_rate_t', row.commission_rate_t);
+
+        row.commission_amount_t = row.commission_rate_t * flt(row.qty);
+        frappe.model.set_value(cdt, cdn, 'commission_amount_t', row.commission_amount_t);
+
+        frm.refresh_field('items');
+        setTimeout(function() {
+			update_totals(frm);
+		}, 4000);
+        },
+    rate: function(frm, cdt, cdn) {
+        // let child = locals[cdt][cdn];
+        // let paid_amount = flt(frm.doc.paid_amount);
+        // let grand_total = flt(frm.doc.grand_total);
+        // let outstanding_amount = grand_total - paid_amount;
+        // frm.set_value('outstanding_amount', outstanding_amount);
+        // frm.refresh_field('outstanding_amount');
+            
+    
+        // احسب القيم الإجمالية بناءً على التغييرات الجديدة
+        setTimeout(function() {
+			update_totals(frm);
+		}, 1000);
+    
+        // احصل على قيمة paid_amount الحالية
+        
+    
+        // // استدعاء دالة حساب outstanding_amount
+        // calculate_outstanding_amount(frm, paid_amount);
+         }
+		 ,
+		 items_remove: function(frm, cdt, cdn) {
+			setTimeout(function() {
+				update_totals(frm);
+			}, 1000);
+		 }
+            
+});
+frappe.ui.form.on('Sales Invoice Payment', {
+    amount: function(frm, cdt, cdn) {
+        calculate_paid_amount(frm);
+    },
+	on_trash: function(frm) {
+		console.log("hi");
+
+		calculate_paid_amount(frm);
+    },
+	payments_remove: function(frm, cdt, cdn) {
+		calculate_paid_amount(frm);
+
+    },
+});
+function fetch_payable_from_company(frm, cdt, cdn) {
+    frappe.call({
+        method: "frappe.client.get",
+        args: {
+            doctype: "Company",
+            name: frm.doc.company,
+        },
+        callback: function (r) {
+            if (r && r.message) {
+                let company = r.message;
+                frappe.model.set_value(cdt, cdn, 'credit_to', company.default_payable_account || "");
+            }
+        }
+    });
+}
+
+
+function calculate_paid_amount(frm, removed_amount = 0) {
+    let paid_amount = 0;
+
+    if (frm.doc.payments && Array.isArray(frm.doc.payments)) {
+        frm.doc.payments.forEach(function(payment) {
+            if (payment.amount) {
+                paid_amount += flt(payment.amount);
+            }
+        });
+    }
+
+    if (removed_amount) {
+        paid_amount -= removed_amount;
+    }
+
+    frm.set_value('paid_amount', paid_amount);
+    frm.refresh_field('paid_amount');
+
+    calculate_outstanding_amount(frm, paid_amount);
+}
+
+function calculate_outstanding_amount(frm, paid_amount) {
+    let total_amount_to_pay;
+    console.log("Hi")
+    if (frm.doc.party_account_currency == frm.doc.currency) {
+        total_amount_to_pay = flt(
+            frm.doc.grand_total - frm.doc.total_advance - flt(frm.doc.write_off_amount),
+        );
+    } else {
+        total_amount_to_pay = flt(
+            flt(frm.doc.base_grand_total, 2) 
+            - frm.doc.total_advance
+            - flt(frm.doc.base_write_off_amount),
+            2
+        );
+    }
+
+    let outstanding_amount = total_amount_to_pay - paid_amount;
+    frm.set_value('outstanding_amount', outstanding_amount);
+    frm.refresh_field('outstanding_amount');
+}
+function update_supplier_field_visibility(frm) {
+      let isMultiSupplier = frm.doc.is_multiple_suppliers;
+
+   frm.fields_dict.items.grid.toggle_display('supplier', isMultiSupplier);
+    
+    frm.fields_dict.items.grid.toggle_display('supplier_invoice_no', isMultiSupplier);
+    
+    frm.fields_dict.items.grid.toggle_display('supplier_invoice_date', isMultiSupplier);
+
+    frm.fields_dict.items.grid.refresh();
+}
+
+function update_totals(frm) {
+    let total_buying_rate = 0;
+    let grand_total_due_to_company = 0;
+    let total_commission_rate = 0;
+    let grand_total = flt(frm.doc.grand_total);
+     let paid_amount = flt(frm.doc.paid_amount); 
+    
+   
+
+    frm.doc.items.forEach(function(item) {
+        total_buying_rate += flt(item.byuing_amount_t);
+        grand_total_due_to_company += flt(item.byuing_amount_t);
+        total_commission_rate += flt(item.commission_amount_t);
+    });
+
+    frm.set_value('total_buying_rate_t', total_buying_rate);
+    frm.set_value('grand_total_due_to_company', grand_total_due_to_company);
+    frm.set_value('total_commission_rate_t', total_commission_rate);
+   
+  
+    frm.set_value('outstanding_amount_due_to_company', grand_total_due_to_company);
+ calculate_outstanding_amount(frm, paid_amount);
+}
+
+
+//##############################################################
